@@ -4,19 +4,27 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
+print("🚀 AGENT STARTED")
 
-# Get Gemini API key from GitHub Actions Secret
+# Check API key
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is missing")
+    raise RuntimeError("❌ GEMINI_API_KEY is missing")
 
+print("🔐 Gemini API key detected")
 
-# Read the shop information
-shop_info = Path("shop.yaml").read_text(encoding="utf-8")
+# Check shop file
+shop_file = Path("shop.yaml")
 
+if not shop_file.exists():
+    raise RuntimeError("❌ shop.yaml was not found")
 
-# AI instructions
+shop_info = shop_file.read_text(encoding="utf-8")
+
+print("📄 shop.yaml loaded")
+print("📏 Shop information length:", len(shop_info))
+
 prompt = f"""
 You are the AI marketing assistant for a local Indian grocery shop.
 
@@ -36,10 +44,8 @@ Requirements:
 - Do NOT invent offers.
 - Do NOT invent products.
 - Do NOT create fake reviews.
-- Do NOT claim something is available unless supported by the shop information.
-- Keep the content natural and suitable for Instagram.
 
-Return exactly these sections:
+Return exactly:
 
 POST IDEA:
 CAPTION:
@@ -47,8 +53,8 @@ HASHTAGS:
 CALL TO ACTION:
 """
 
+print("🧠 Sending request to Gemini...")
 
-# Gemini API request
 payload = {
     "contents": [
         {
@@ -64,12 +70,10 @@ payload = {
     }
 }
 
-
 url = (
     "https://generativelanguage.googleapis.com/"
     "v1beta/models/gemini-2.5-flash:generateContent"
 )
-
 
 request = urllib.request.Request(
     url,
@@ -81,36 +85,37 @@ request = urllib.request.Request(
     method="POST"
 )
 
-
-# Send request to Gemini
 try:
     with urllib.request.urlopen(request, timeout=60) as response:
-        result = json.loads(
-            response.read().decode("utf-8")
-        )
+        raw = response.read().decode("utf-8")
+
+    print("✅ Gemini responded")
+    print("📦 Response received")
+    
+    result = json.loads(raw)
 
 except urllib.error.HTTPError as error:
-    body = error.read().decode(
-        "utf-8",
-        errors="replace"
-    )
-
-    print("Gemini API error:")
-    print(body)
-
+    print("❌ Gemini HTTP ERROR:", error.code)
+    print(error.read().decode("utf-8", errors="replace"))
     raise
 
+except Exception as error:
+    print("❌ Gemini connection error:", repr(error))
+    raise
 
-# Extract AI response
-text = result["candidates"][0]["content"]["parts"][0]["text"]
-
-
-# Show result in GitHub Actions
 print()
 print("=" * 60)
 print("🤖 GHAR TAK — AI CONTENT ENGINE")
 print("=" * 60)
+
+try:
+    text = result["candidates"][0]["content"]["parts"][0]["text"]
+    print(text)
+
+except Exception:
+    print("⚠️ Could not extract normal Gemini text.")
+    print("Full response:")
+    print(json.dumps(result, indent=2))
+
 print()
-print(text)
-print()
-print("✅ AI content generation successful.")
+print("✅ AGENT FINISHED")
