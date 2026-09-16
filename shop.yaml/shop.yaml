@@ -1,0 +1,61 @@
+shop:
+  name: "Ghar Tak"
+
+  type: "Grocery & Supermarket"
+
+  location:
+    city: "Jamshedpur"
+    state: "Jharkhand"
+    country: "India"
+
+  description: >
+    Ghar Tak is a grocery and supermarket-style shop in Jamshedpur.
+    The shop does not sell vegetables.
+    Its main specialties are flour milling, edible oil, masala and spices,
+    along with general grocery and supermarket products.
+
+  main_specialties:
+    - "Flour milling"
+    - "Edible oil"
+    - "Masala"
+    - "Spices"
+
+  categories:
+    - "Grocery"
+    - "Supermarket products"
+    - "Flour"
+    - "Oil"
+    - "Masala"
+    - "Spices"
+
+marketing:
+  primary_goal: "Advertise the shop and attract more local customers"
+
+  target_area:
+    - "Jamshedpur"
+    - "Jharkhand"
+
+  content_goals:
+    - "Increase local awareness"
+    - "Bring more people to the shop"
+    - "Promote products and offers"
+    - "Highlight flour milling"
+    - "Highlight oil"
+    - "Highlight masala and spices"
+    - "Increase Instagram engagement"
+    - "Generate customer enquiries"
+
+  brand_style:
+    tone: "friendly, local, trustworthy, energetic"
+    language: "Hindi"
+    audience: "Local customers in Jamshedpur"
+
+rules:
+  never_claim_unverified_prices: true
+  never_invent_offers: true
+  never_invent_products: true
+  never_claim_fake_reviews: true
+  never_use_fake_engagement: true
+  never_mass_follow_or_mass_like: true
+  never_use_unofficial_instagram_login: true
+  paid_services_allowed: false
