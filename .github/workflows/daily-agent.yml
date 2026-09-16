@@ -13,10 +13,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Start Agent
+      - name: Download Shop Brain
         run: |
-          echo "🤖 Shop AI Agent started"
-          echo "☁️ Running entirely in the cloud"
-          echo "💰 Paid services are disabled"
-          echo "📊 Daily automation is active"
-          echo "🔐 No external GitHub Actions required"
+          curl -fsSL https://raw.githubusercontent.com/oms733411-commits/shop-ai-agent/main/shop.yaml -o shop.yaml
+
+      - name: Download Agent
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/oms733411-commits/shop-ai-agent/main/agent.py -o agent.py
+
+      - name: Run Agent
+        run: |
+          python3 agent.py
