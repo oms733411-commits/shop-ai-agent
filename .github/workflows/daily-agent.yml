@@ -13,12 +13,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Start Agent
         run: |
           echo "🤖 Shop AI Agent started"
           echo "☁️ Running entirely in the cloud"
           echo "💰 Paid services are disabled"
           echo "📊 Daily automation is active"
+          echo "🔐 No external GitHub Actions required"
