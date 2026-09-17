@@ -24,11 +24,10 @@ jobs:
           curl -fL \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github.raw+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/shop.yaml?ref=main" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/shop.yaml/shop.yaml?ref=main" \
             -o shop.yaml
 
           echo "✅ shop.yaml downloaded"
-          echo "Shop file size:"
           wc -c shop.yaml
 
       - name: Download Agent
@@ -40,14 +39,13 @@ jobs:
           curl -fL \
             -H "Authorization: Bearer $GH_TOKEN" \
             -H "Accept: application/vnd.github.raw+json" \
-            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/agent.py?ref=main" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/agent.py/agent.py?ref=main" \
             -o agent.py
 
           echo "✅ agent.py downloaded"
-          echo "Agent file size:"
           wc -c agent.py
 
-          echo "First 10 lines of agent.py:"
+          echo "First 10 lines:"
           head -n 10 agent.py
 
       - name: Run AI Agent
@@ -55,7 +53,5 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           echo "🚀 Starting Ghar Tak AI Agent..."
-          echo "Python version:"
           python3 --version
-
           python3 -u agent.py
