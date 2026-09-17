@@ -4,57 +4,73 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
-print("🚀 AGENT STARTED")
 
-# Check API key
+print("============================================")
+print("🤖 GHAR TAK AI AGENT")
+print("============================================")
+print("🚀 Agent started")
+
+
+# Gemini API key
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise RuntimeError("❌ GEMINI_API_KEY is missing")
+    print("❌ GEMINI_API_KEY is missing")
+    raise SystemExit(1)
 
 print("🔐 Gemini API key detected")
 
-# Check shop file
-shop_file = Path("shop.yaml")
 
-if not shop_file.exists():
-    raise RuntimeError("❌ shop.yaml was not found")
+# Load shop information
+shop_path = Path("shop.yaml")
 
-shop_info = shop_file.read_text(encoding="utf-8")
+if not shop_path.exists():
+    print("❌ shop.yaml was not found")
+    raise SystemExit(1)
+
+shop_info = shop_path.read_text(encoding="utf-8")
 
 print("📄 shop.yaml loaded")
 print("📏 Shop information length:", len(shop_info))
 
+
+# AI prompt
 prompt = f"""
-You are the AI marketing assistant for a local Indian grocery shop.
+You are the AI marketing assistant for Ghar Tak.
 
 SHOP INFORMATION:
 {shop_info}
 
-Create ONE Instagram post for today.
+Create ONE Instagram marketing post for today.
 
 Requirements:
+
 - Language: Hindi
 - Audience: local customers in Jamshedpur
 - Tone: friendly, local, trustworthy and energetic
 - Goal: increase local awareness, enquiries and shop visits
-- Focus on grocery/supermarket products, flour milling, edible oil,
-  masala and spices.
-- Do NOT invent prices.
-- Do NOT invent offers.
-- Do NOT invent products.
-- Do NOT create fake reviews.
+- Focus on grocery and supermarket products
+- Highlight flour milling, edible oil, masala and spices when appropriate
+- Do NOT invent prices
+- Do NOT invent offers
+- Do NOT invent products
+- Do NOT create fake reviews
+- Do NOT make unsupported claims
+- Keep the content natural and useful
 
 Return exactly:
 
 POST IDEA:
+
 CAPTION:
+
 HASHTAGS:
+
 CALL TO ACTION:
 """
 
-print("🧠 Sending request to Gemini...")
 
+# Gemini request
 payload = {
     "contents": [
         {
@@ -70,10 +86,13 @@ payload = {
     }
 }
 
+
+# CURRENT GEMINI MODEL
 url = (
     "https://generativelanguage.googleapis.com/"
-    "v1beta/models/gemini-2.5-flash:generateContent"
+    "v1beta/models/gemini-3.6-flash:generateContent"
 )
+
 
 request = urllib.request.Request(
     url,
@@ -85,37 +104,70 @@ request = urllib.request.Request(
     method="POST"
 )
 
-try:
-    with urllib.request.urlopen(request, timeout=60) as response:
-        raw = response.read().decode("utf-8")
 
-    print("✅ Gemini responded")
-    print("📦 Response received")
-    
-    result = json.loads(raw)
+print("🧠 Sending request to Gemini 3.6 Flash...")
+
+
+# Call Gemini
+try:
+
+    with urllib.request.urlopen(request, timeout=60) as response:
+
+        raw_response = response.read().decode("utf-8")
+
+        print("✅ Gemini API responded")
+
+        result = json.loads(raw_response)
+
 
 except urllib.error.HTTPError as error:
+
     print("❌ Gemini HTTP ERROR:", error.code)
-    print(error.read().decode("utf-8", errors="replace"))
-    raise
+
+    error_body = error.read().decode(
+        "utf-8",
+        errors="replace"
+    )
+
+    print(error_body)
+
+    raise SystemExit(1)
+
 
 except Exception as error:
-    print("❌ Gemini connection error:", repr(error))
-    raise
 
-print()
-print("=" * 60)
-print("🤖 GHAR TAK — AI CONTENT ENGINE")
-print("=" * 60)
+    print("❌ Gemini connection error:")
+    print(repr(error))
 
+    raise SystemExit(1)
+
+
+# Extract response
 try:
+
     text = result["candidates"][0]["content"]["parts"][0]["text"]
-    print(text)
 
 except Exception:
-    print("⚠️ Could not extract normal Gemini text.")
-    print("Full response:")
-    print(json.dumps(result, indent=2))
 
+    print("❌ Could not extract Gemini response")
+
+    print(json.dumps(
+        result,
+        indent=2,
+        ensure_ascii=False
+    ))
+
+    raise SystemExit(1)
+
+
+# Display result
 print()
-print("✅ AGENT FINISHED")
+print("============================================")
+print("📱 GHAR TAK — GENERATED INSTAGRAM CONTENT")
+print("============================================")
+print()
+print(text)
+print()
+print("============================================")
+print("✅ AI CONTENT GENERATION SUCCESSFUL")
+print("============================================")
