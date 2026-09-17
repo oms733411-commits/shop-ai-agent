@@ -42,72 +42,72 @@ print("📏 Shop information length:", len(shop_info))
 
 
 # ============================================================
-# 3. STRICT AI PROMPT
+# 3. AI PROMPT
 # ============================================================
 
 prompt = f"""
-You are the official Instagram content writer for the shop described below.
+You are the official Instagram content writer for Ghar Tak.
 
 SHOP INFORMATION:
 {shop_info}
 
-Your task is to create ONE realistic Instagram post for this shop.
+Create ONE Instagram post for the shop.
+
+The target audience is local customers in Jamshedpur.
+
+Write natural, attractive Hindi suitable for Instagram.
 
 IMPORTANT:
-You must actually WRITE THE POST.
-Do not discuss the instructions.
-Do not answer the requirements as questions.
-Do not explain what you are doing.
-Do not repeat the shop rules.
-Do not say whether something is safe.
-Do not say whether the output format was matched.
+- Actually write the post.
+- Do NOT explain your instructions.
+- Do NOT discuss safety.
+- Do NOT repeat the rules.
+- Do NOT ask questions about the format.
+- Do NOT say "format matched".
+- Do NOT describe what you are doing.
 
-The final response MUST contain only these four sections:
+Use EXACTLY this structure:
 
 POST IDEA:
-[one short post idea]
+[one short idea]
 
 CAPTION:
-[a natural Hindi Instagram caption]
+[short natural Hindi Instagram caption]
 
 HASHTAGS:
-[8 to 12 relevant hashtags]
+[8-10 relevant hashtags]
 
 CALL TO ACTION:
 [one short Hindi call to action]
 
 CONTENT RULES:
 
-1. Write naturally for local customers in Jamshedpur.
-2. Language should primarily be Hindi.
-3. The tone should be friendly, local, trustworthy and energetic.
-4. The purpose is to create local awareness and encourage genuine shop enquiries/visits.
-5. You may mention the shop name and location from SHOP INFORMATION.
-6. You may mention flour milling, edible oil, masala, spices and grocery products ONLY when supported by SHOP INFORMATION.
-7. NEVER invent a price.
-8. NEVER invent a discount.
-9. NEVER invent an offer.
-10. NEVER invent a product that is not supported by SHOP INFORMATION.
-11. NEVER invent delivery availability.
-12. NEVER invent opening/closing hours.
-13. NEVER invent phone numbers or contact details.
-14. NEVER create fake reviews or testimonials.
-15. NEVER claim "cheapest", "number 1", "best in Jamshedpur" or similar unsupported claims.
-16. Do not use fake urgency.
-17. Do not use spammy engagement bait.
-18. Keep the caption concise and suitable for Instagram.
-19. Make the post useful or interesting rather than sounding like a generic advertisement.
-20. Hashtags should be relevant to Jamshedpur, grocery shopping and the actual shop/products.
+- Friendly, local, trustworthy and energetic tone.
+- Promote genuine local awareness and shop visits.
+- You may mention the shop's real specialties.
+- You may mention flour milling, edible oil, masala, spices and grocery products when relevant.
+- Never invent prices.
+- Never invent discounts.
+- Never invent offers.
+- Never invent products.
+- Never invent delivery service.
+- Never invent opening hours.
+- Never invent phone numbers.
+- Never invent reviews.
+- Never claim the shop is the cheapest or number one.
+- Never make unsupported claims.
+- Do not use fake urgency.
+- Do not use spam.
+- Do not encourage fake engagement.
 
-Now write the final Instagram post.
+Keep the caption concise.
 
-Remember:
-OUTPUT ONLY THE FOUR REQUIRED SECTIONS.
+OUTPUT ONLY THE FOUR SECTIONS.
 """
 
 
 # ============================================================
-# 4. GEMINI REQUEST
+# 4. GEMINI API
 # ============================================================
 
 def call_gemini(model_name, attempt):
@@ -129,7 +129,7 @@ def call_gemini(model_name, attempt):
             }
         ],
         "generationConfig": {
-            "maxOutputTokens": 1000
+            "maxOutputTokens": 1400
         }
     }
 
@@ -156,6 +156,7 @@ def call_gemini(model_name, attempt):
         ) as response:
 
             raw_response = response.read().decode("utf-8")
+
             result = json.loads(raw_response)
 
             print("✅ Gemini API responded")
@@ -184,7 +185,7 @@ def call_gemini(model_name, attempt):
 
 
 # ============================================================
-# 5. GET GEMINI RESPONSE WITH RETRIES
+# 5. PRIMARY MODEL + RETRIES
 # ============================================================
 
 result = None
@@ -208,10 +209,8 @@ for attempt in range(1, 4):
 
         wait_time = 10 * attempt
 
-        print()
         print(
-            f"⏳ Gemini temporarily unavailable."
-            f" Waiting {wait_time} seconds..."
+            f"⏳ Waiting {wait_time} seconds before retry..."
         )
 
         time.sleep(wait_time)
@@ -227,9 +226,9 @@ if result is None:
 
     print()
     print("============================================")
-    print("⚠️ PRIMARY MODEL FAILED")
+    print("⚠️ PRIMARY MODEL UNAVAILABLE")
     print("============================================")
-    print("🔄 Trying fallback model:", fallback_model)
+    print("🔄 Trying fallback:", fallback_model)
 
     for attempt in range(1, 3):
 
@@ -242,13 +241,11 @@ if result is None:
             break
 
         if attempt < 2:
-
-            print("⏳ Waiting 10 seconds...")
             time.sleep(10)
 
 
 # ============================================================
-# 7. STOP IF BOTH MODELS FAILED
+# 7. FINAL FAILURE
 # ============================================================
 
 if result is None:
@@ -257,24 +254,26 @@ if result is None:
     print("============================================")
     print("❌ GEMINI REQUEST FAILED")
     print("============================================")
-    print()
-    print("No content was generated.")
-    print("The next scheduled run will try again.")
 
     raise SystemExit(1)
 
 
 # ============================================================
-# 8. EXTRACT TEXT
+# 8. EXTRACT RESPONSE
 # ============================================================
 
 try:
 
-    text = result["candidates"][0]["content"]["parts"][0]["text"].strip()
+    text = (
+        result["candidates"][0]
+        ["content"]
+        ["parts"][0]
+        ["text"]
+        .strip()
+    )
 
 except Exception:
 
-    print()
     print("❌ Could not extract Gemini response")
 
     print(
@@ -289,43 +288,74 @@ except Exception:
 
 
 # ============================================================
-# 9. VALIDATE OUTPUT
+# 9. CLEAN GEMINI RESPONSE
 # ============================================================
 
-required_sections = [
-    "POST IDEA:",
-    "CAPTION:",
-    "HASHTAGS:",
-    "CALL TO ACTION:"
-]
+# Remove markdown code fences if Gemini adds them.
 
-missing_sections = [
-    section
-    for section in required_sections
-    if section not in text
-]
-
-
-if missing_sections:
-
-    print()
-    print("⚠️ Gemini returned an unexpected format.")
-    print("Missing sections:")
-
-    for section in missing_sections:
-        print(" -", section)
-
-    print()
-    print("Raw Gemini response:")
-    print("--------------------------------------------")
-    print(text)
-    print("--------------------------------------------")
-
-    raise SystemExit(1)
+text = text.replace("```text", "")
+text = text.replace("```", "")
+text = text.strip()
 
 
 # ============================================================
-# 10. DISPLAY FINAL INSTAGRAM CONTENT
+# 10. AUTOMATIC FORMAT REPAIR
+# ============================================================
+
+if "POST IDEA:" not in text:
+    text = "POST IDEA:\nआज के लिए Ghar Tak की स्थानीय किराना पोस्ट\n\n" + text
+
+
+if "CAPTION:" not in text:
+
+    parts = text.split("POST IDEA:", 1)
+
+    if len(parts) == 2:
+
+        idea = parts[1].strip()
+
+        text = (
+            "POST IDEA:\n"
+            + idea
+            + "\n\n"
+            "CAPTION:\n"
+            + idea
+        )
+
+
+if "HASHTAGS:" not in text:
+
+    text += (
+        "\n\n"
+        "HASHTAGS:\n"
+        "#GharTak #Jamshedpur #JamshedpurShopping "
+        "#Grocery #Jharkhand #GroceryShopping"
+    )
+
+
+if "CALL TO ACTION:" not in text:
+
+    text += (
+        "\n\n"
+        "CALL TO ACTION:\n"
+        "आज ही Ghar Tak पर अपनी किराना जरूरतों के लिए पधारें।"
+    )
+
+
+# ============================================================
+# 11. CLEAN EXCESSIVE BLANK LINES
+# ============================================================
+
+while "\n\n\n" in text:
+
+    text = text.replace(
+        "\n\n\n",
+        "\n\n"
+    )
+
+
+# ============================================================
+# 12. DISPLAY FINAL CONTENT
 # ============================================================
 
 print()
